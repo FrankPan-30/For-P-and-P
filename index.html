@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1/∞</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-rose: #a64b56;
+            --accent-gold: #d4af37;
+            --bg-champagne: #f7e7ce;
+            --paper-cream: #fdfcf0;
+            --line-blue: #dae5eb;
+        }
+
+        body { 
+            margin: 0; background: var(--bg-champagne); overflow: hidden; 
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            perspective: 1500px;
+        }
+
+        /* 背景：浪漫爱心 */
+        .heart-fall {
+            position: fixed; top: -5vh; color: #ff80ab; font-size: 20px;
+            user-select: none; z-index: 1000; animation: fall linear forwards; opacity: 0.4;
+        }
+
+        /* 印章周围的金色微星 */
+        .micro-star {
+            position: absolute; color: var(--accent-gold); font-size: 10px;
+            user-select: none; z-index: 1001; pointer-events: none;
+            animation: twinkleFade 2.5s ease-out forwards;
+        }
+
+        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+        @keyframes twinkleFade {
+            0% { opacity: 0; transform: translate(0, 0) scale(0); }
+            50% { opacity: 1; transform: translate(var(--tx), var(--ty)) scale(1.2); }
+            100% { opacity: 0; transform: translate(var(--tx2), var(--ty2)) scale(0.5); }
+        }
+
+        .stage {
+            display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;
+        }
+
+        /* 信封容器 */
+        .envelope-wrapper {
+            position: relative; width: 520px; height: 360px; cursor: pointer; transform-style: preserve-3d;
+        }
+
+        .envelope-back {
+            position: absolute; width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--primary-rose) 0%, #8a3a44 100%);
+            border-radius: 8px; box-shadow: 0 30px 60px rgba(0,0,0,0.3); z-index: 1;
+        }
+
+        .lid {
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+            z-index: 5; transform-origin: top; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .lid-front {
+            position: absolute; width: 0; height: 0;
+            border-top: 200px solid #b85561; border-left: 260px solid transparent; border-right: 260px solid transparent;
+            filter: drop-shadow(0 8px 6px rgba(0,0,0,0.2));
+        }
+
+        /* 精致圆形火漆 */
+        .wax-seal {
+            position: absolute; top: 165px; left: 215px; width: 90px; height: 90px;
+            z-index: 10; transition: 0.4s;
+            background: radial-gradient(circle, #f1c40f, #d4af37, #996515);
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4), inset 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        /* 高级感手写斜体 */
+        .envelope-text {
+            position: absolute; bottom: 35px; width: 100%; text-align: center;
+            color: rgba(255,255,255,0.9); z-index: 4;
+            font-family: 'Great Vibes', cursive;
+            font-size: 32px; letter-spacing: 1px;
+        }
+
+        /* 指引延迟 0.2s 出现 */
+        .guide-text {
+            margin-top: 40px; color: var(--primary-rose); font-size: 16px; letter-spacing: 4px;
+            opacity: 0; animation: fadeIn 1s forwards 0.2s; font-weight: 300;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 内容层 */
+        #display-layer { display: none; position: relative; width: 100vw; height: 100vh; }
+
+        .photo-stack {
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            width: 320px; height: 400px;
+        }
+        .photo-card {
+            position: absolute; width: 100%; background: white; padding: 12px 12px 40px 12px;
+            border-radius: 2px; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            opacity: 0; left: 50%; top: 50%;
+            transition: all 1.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .photo-card img { width: 100%; height: 100%; object-fit: cover; background: #f0f0f0; }
+
+        /* 初始叠放：带角度的堆叠 */
+        #p1.step-appear { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-3deg); }
+        #p2.step-appear { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(4deg); }
+        #p3.step-appear { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-2deg); }
+
+        /* 散开位置 */
+        .step-scatter #p1 { transform: translate(-140%, 10%) rotate(-12deg); }
+        .step-scatter #p2 { transform: translate(-105%, -65%) rotate(-5deg); }
+        .step-scatter #p3 { transform: translate(50%, -30%) rotate(10deg); }
+
+        /* 信纸：字号缩小且移除落款 */
+        .ruled-paper {
+            position: absolute; top: 55%; left: 50%; transform: translate(-50%, 100%);
+            width: 450px; min-height: 520px; background: var(--paper-cream);
+            background-image: linear-gradient(var(--line-blue) 1px, transparent 1px);
+            background-size: 100% 2.2rem; padding: 2.2rem 40px; 
+            border-radius: 3px; box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            opacity: 0; z-index: 100; box-sizing: border-box;
+            transition: all 1.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .ruled-paper.active { opacity: 1; transform: translate(-50%, -50%); }
+
+        .paper-content { font-size: 0.95rem; color: #444; line-height: 2.2rem; text-align: justify; }
+        .paper-content h2 { color: var(--primary-rose); border-bottom: 2px solid var(--accent-gold); display: inline-block; padding-right: 15px; margin: 0; font-size: 1.2rem; }
+
+        .open .lid { transform: rotateX(180deg); z-index: 0; }
+        .open .wax-seal { opacity: 0; transform: scale(0); pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <div class="stage" id="start-stage">
+        <div class="envelope-wrapper" onclick="handleOpen()">
+            <div class="envelope-back"></div>
+            <div class="lid"><div class="lid-front"></div></div>
+            <div class="wax-seal" id="seal-trigger"></div>
+            <div class="envelope-text">From P to P</div>
+        </div>
+        <div class="guide-text">CLICK TO OPEN</div>
+    </div>
+
+    <div id="display-layer">
+        <div class="photo-stack" id="p-stack">
+            <div class="photo-card" id="p1"><img src="img1.jpg"></div>
+            <div class="photo-card" id="p2"><img src="img2.jpg"></div>
+            <div class="photo-card" id="p3"><img src="img3.jpg"></div>
+        </div>
+
+        <div class="ruled-paper" id="paper">
+            <div class="paper-content">
+                <h2>To 最最亲爱的小彭宝宝：</h2><br>
+                这些天，宝宝又陪我经历了一段充满挑战但也意义非凡的日子。我们都体会过那种心里积压着千言万语，却不知从何说起、怕说错更怕伤着对方的酸楚。正是这样的时刻让我明白，能坦诚地开口，安静地倾听，最终解决心结是一件多么珍贵的事。<br><br>
+                我也明白，要让关系走得长远，我们都应该为彼此调整自己的脚步。小彭宝宝需要的“安全感”，是那句时时刻刻的“我爱你”，也是敏锐察觉、认真对待她的每一份情绪。在未来的日子里，我会用行动把这份安心，一点点交到你手里。<br><br>
+                因为宝宝，你是那个我想要陪伴一生的人，你知道的，对吗？
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 爱心飘落
+        function createHearts() {
+            setInterval(() => {
+                const h = document.createElement('div');
+                h.innerHTML = '❤️';
+                h.className = 'heart-fall';
+                h.style.left = Math.random() * 100 + 'vw';
+                h.style.animationDuration = (Math.random() * 3 + 6) + 's';
+                document.body.appendChild(h);
+                setTimeout(() => h.remove(), 8000);
+            }, 900);
+        }
+        createHearts();
+
+        // 2. 鼠标移入印章星星特效
+        const seal = document.getElementById('seal-trigger');
+        seal.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.4) return;
+            const s = document.createElement('div');
+            s.innerHTML = '✨';
+            s.className = 'micro-star';
+            const rect = seal.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            s.style.left = centerX + 'px';
+            s.style.top = centerY + 'px';
+            const angle = Math.random() * Math.PI * 2;
+            const dist = 60 + Math.random() * 40;
+            const dist2 = dist + 30;
+            s.style.setProperty('--tx', `${Math.cos(angle) * dist}px`);
+            s.style.setProperty('--ty', `${Math.sin(angle) * dist}px`);
+            s.style.setProperty('--tx2', `${Math.cos(angle) * dist2}px`);
+            s.style.setProperty('--ty2', `${Math.sin(angle) * dist2}px`);
+            document.body.appendChild(s);
+            setTimeout(() => s.remove(), 2500);
+        });
+
+        // 3. 开启仪式：慢速叠放后散开
+        function handleOpen() {
+            document.querySelector('.envelope-wrapper').classList.add('open');
+            document.querySelector('.guide-text').style.opacity = '0';
+            
+            setTimeout(() => {
+                const stage = document.getElementById('start-stage');
+                stage.style.transition = '1.5s ease';
+                stage.style.opacity = '0';
+                
+                setTimeout(() => {
+                    stage.style.display = 'none';
+                    document.getElementById('display-layer').style.display = 'block';
+                    
+                    const photos = ['p1', 'p2', 'p3'];
+                    // 每 1.5 秒出现一张照片
+                    photos.forEach((id, index) => {
+                        setTimeout(() => {
+                            document.getElementById(id).classList.add('step-appear');
+                        }, index * 1500); 
+                    });
+
+                    setTimeout(() => {
+                        document.getElementById('p-stack').classList.add('step-scatter');
+                        setTimeout(() => {
+                            document.getElementById('paper').classList.add('active');
+                        }, 800);
+                    }, (photos.length - 1) * 1500 + 1200);
+
+                }, 1200);
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
